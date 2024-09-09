@@ -41,8 +41,8 @@ export const feeds = createTable(
     shouldNotify: boolean("should_notify").default(true).notNull(),
     lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }),
     totalNotified: integer("total_notified").default(0).notNull(),
-    botToken: varchar("bot_token", { length: 255 }), // New field
-    chatId: varchar("chat_id", { length: 255 }), // New field
+    botToken: varchar("bot_token", { length: 255 }).notNull(),
+    chatId: varchar("chat_id", { length: 255 }).notNull(),
   },
   (example) => ({
     createdByIdIdx: index("created_by_idx").on(example.createdById),

@@ -57,6 +57,13 @@
       "when": 1725831888259,
       "tag": "0007_outgoing_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1725922114841,
+      "tag": "0008_lame_nemesis",
+      "breakpoints": true
     }
   ]
 }
