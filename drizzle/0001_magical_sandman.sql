@@ -1,0 +1,1 @@
+ALTER TABLE "rss-t3_feed" ALTER COLUMN "should_notify" SET NOT NULL;

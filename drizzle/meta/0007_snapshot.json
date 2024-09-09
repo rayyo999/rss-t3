@@ -1,6 +1,6 @@
 {
-  "id": "b89c5b3b-e357-4b34-8541-0e25d7bf67b3",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "6dd8d7d5-bbd7-4d21-afce-f6e10940d16f",
+  "prevId": "4a216e29-eca9-4a7b-8fcd-0776fe6d00f4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -124,7 +124,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true
         },
@@ -139,6 +139,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_by": {
           "name": "created_by",
@@ -163,8 +169,33 @@
           "name": "should_notify",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": true
+        },
+        "last_notified_at": {
+          "name": "last_notified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_notified": {
+          "name": "total_notified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "bot_token": {
+          "name": "bot_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chat_id": {
+          "name": "chat_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {

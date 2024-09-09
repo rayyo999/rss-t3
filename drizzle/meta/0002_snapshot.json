@@ -1,6 +1,6 @@
 {
-  "id": "b89c5b3b-e357-4b34-8541-0e25d7bf67b3",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "12b282a4-5ecb-488f-aae2-3295c679ad45",
+  "prevId": "efe40da0-5f39-4ff4-a49d-a174126d1607",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -140,6 +140,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "url": {
+          "name": "url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "created_by": {
           "name": "created_by",
           "type": "varchar(255)",
@@ -163,7 +169,7 @@
           "name": "should_notify",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": true
         }
       },

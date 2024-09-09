@@ -26,6 +26,8 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: z.string(),
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_BOT_USERNAME: z.string(),
+    TELEGRAM_API_URL: z.string(),
+    ENCRYPTION_KEY: z.string(),
   },
 
   /**
@@ -50,6 +52,8 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME,
+    TELEGRAM_API_URL: process.env.TELEGRAM_API_URL,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

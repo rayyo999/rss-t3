@@ -1,10 +1,10 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   pgTableCreator,
   primaryKey,
-  serial,
   text,
   timestamp,
   varchar,
@@ -19,11 +19,16 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `rss-t3_${name}`);
 
-export const posts = createTable(
-  "post",
+export const feeds = createTable(
+  "feed",
   {
-    id: serial("id").primaryKey(),
-    name: varchar("name", { length: 256 }),
+    id: varchar("id", { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    title: varchar("title", { length: 256 }).notNull(),
+    description: text("description"),
+    url: varchar("url", { length: 255 }).notNull(),
     createdById: varchar("created_by", { length: 255 })
       .notNull()
       .references(() => users.id),
@@ -33,10 +38,15 @@ export const posts = createTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
       () => new Date(),
     ),
+    shouldNotify: boolean("should_notify").default(true).notNull(),
+    lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }),
+    totalNotified: integer("total_notified").default(0).notNull(),
+    botToken: varchar("bot_token", { length: 255 }), // New field
+    chatId: varchar("chat_id", { length: 255 }), // New field
   },
   (example) => ({
     createdByIdIdx: index("created_by_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
+    titleIndex: index("title_idx").on(example.title),
   }),
 );
 
