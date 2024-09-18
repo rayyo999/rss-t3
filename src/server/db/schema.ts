@@ -38,9 +38,19 @@ export const feeds = createTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
       () => new Date(),
     ),
+    userUpdatedAt: timestamp("user_updated_at", { withTimezone: true }),
     shouldNotify: boolean("should_notify").default(true).notNull(),
     lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }),
     totalNotified: integer("total_notified").default(0).notNull(),
+
+    // prev feed
+    prevFeedPublishedAt: timestamp("prev_feed_published_at", {
+      withTimezone: true,
+    }),
+    prevFeedTitle: varchar("prev_feed_title", { length: 255 }),
+    prevFeedLink: varchar("prev_feed_link", { length: 255 }),
+
+    // telegram bot
     botToken: varchar("bot_token", { length: 255 }).notNull(),
     chatId: varchar("chat_id", { length: 255 }).notNull(),
   },

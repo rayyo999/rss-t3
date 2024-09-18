@@ -10,6 +10,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { env } from "~/env";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
@@ -130,4 +131,15 @@ export const protectedProcedure = t.procedure
         session: { ...ctx.session, user: ctx.session.user },
       },
     });
+  });
+
+//create a procedure that is protected and check cron token in header
+export const protectedProcedureWithCronToken = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    const token = ctx.headers.get("X-Cron-Token");
+    if (token !== env.CRON_TOKEN) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({ ctx });
   });

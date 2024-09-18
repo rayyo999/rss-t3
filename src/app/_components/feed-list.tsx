@@ -64,8 +64,8 @@ export function FeedCard(props: {
         <CardFooter className="flex justify-between text-sm text-muted-foreground">
           <span>
             Updated:{" "}
-            {props.feed.updatedAt
-              ? new Date(props.feed.updatedAt).toLocaleString()
+            {props.feed.userUpdatedAt
+              ? new Date(props.feed.userUpdatedAt).toLocaleString()
               : "Never"}
           </span>
           <span>

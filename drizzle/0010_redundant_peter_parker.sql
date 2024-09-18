@@ -1,0 +1,1 @@
+ALTER TABLE "rss-t3_feed" ADD COLUMN "user_updated_at" timestamp with time zone;

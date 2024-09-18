@@ -1,14 +1,20 @@
 import axios, { AxiosError } from "axios";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { env } from "~/env";
 import { decryptToken, encryptToken } from "~/lib/encrypt-decrypt-token";
+import { getRemoteLatestFeed } from "~/lib/get-remote-latest-feed";
 import { telegramBotSendMessage } from "~/lib/telegram-bot-send-message";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  protectedProcedureWithCronToken,
+} from "~/server/api/trpc";
 import { feeds } from "~/server/db/schema";
 import { createCaller } from "../root";
 import { feedCreateSchema, feedUpdateSchema } from "../schema/feed";
+import { TRPCError } from "@trpc/server";
 
 export const feedRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -209,4 +215,123 @@ export const feedRouter = createTRPCRouter({
           .where(eq(feeds.id, input.id));
       }
     }),
+
+  compareAndNotify: protectedProcedureWithCronToken.mutation(
+    async ({ ctx }) => {
+      let processedCount = 0;
+      let updatedCount = 0;
+      let errorCount = 0;
+
+      try {
+        const pageSize = 100; // Adjust based on your needs
+        let cursor: { id: string; createdAt: Date } | undefined;
+
+        while (true) {
+          const feedBatch = await ctx.db
+            .select()
+            .from(feeds)
+            .where(
+              and(
+                eq(feeds.shouldNotify, true),
+                cursor
+                  ? or(
+                      gt(feeds.createdAt, cursor.createdAt),
+                      and(
+                        eq(feeds.createdAt, cursor.createdAt),
+                        gt(feeds.id, cursor.id),
+                      ),
+                    )
+                  : undefined,
+              ),
+            )
+            .orderBy(asc(feeds.createdAt), asc(feeds.id))
+            .limit(pageSize);
+
+          if (feedBatch.length === 0) break;
+
+          for (const feed of feedBatch) {
+            processedCount++;
+            try {
+              const remoteLatestFeed = await getRemoteLatestFeed(feed.url);
+
+              if (!remoteLatestFeed) {
+                console.error(`Failed to fetch remote feed for ${feed.url}`);
+                continue;
+              }
+
+              if (!remoteLatestFeed.pubDate) {
+                console.error(
+                  `Failed to fetch remote feed for ${feed.url}, no pubDate`,
+                );
+                continue;
+              }
+
+              const isNewContent = checkIsSameFeed(feed, remoteLatestFeed);
+
+              if (!isNewContent) {
+                console.log(
+                  `No new content for ${feed.title}, skip sending notification`,
+                );
+                continue;
+              }
+
+              // Send notification
+              const result = await telegramBotSendMessage({
+                botToken: decryptToken(feed.botToken),
+                chatId: decryptToken(feed.chatId),
+                message: `New content for ${feed.title}:\nTitle: ${remoteLatestFeed.title?.trim()}\nLink: ${remoteLatestFeed.link}`,
+              });
+
+              if (!result) {
+                console.error(`Failed to send message for ${feed.title}`);
+                continue;
+              }
+
+              // Update feed in database
+              await ctx.db
+                .update(feeds)
+                .set({
+                  prevFeedPublishedAt: new Date(remoteLatestFeed.pubDate),
+                  prevFeedTitle: remoteLatestFeed.title,
+                  prevFeedLink: remoteLatestFeed.link,
+                  lastNotifiedAt: new Date(),
+                  totalNotified: sql`${feeds.totalNotified} + 1`,
+                })
+                .where(eq(feeds.id, feed.id));
+
+              updatedCount++;
+            } catch (error) {
+              console.error(`Error feed ${feed.id}:`, error);
+              errorCount++;
+            }
+          }
+
+          return {
+            message: "Cron job completed",
+            processedCount,
+            updatedCount,
+            errorCount,
+          };
+        }
+      } catch (error) {
+        console.error("Cron job failed:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to process feeds",
+        });
+      }
+    },
+  ),
 });
+
+function checkIsSameFeed(
+  oldFeed: typeof feeds.$inferSelect,
+  newFeed: NonNullable<Awaited<ReturnType<typeof getRemoteLatestFeed>>>,
+) {
+  return (
+    !oldFeed.prevFeedPublishedAt ||
+    new Date(newFeed.pubDate!) > newFeed.prevFeedPublishedAt ||
+    newFeed.title !== oldFeed.prevFeedTitle ||
+    newFeed.link !== oldFeed.prevFeedLink
+  );
+}
