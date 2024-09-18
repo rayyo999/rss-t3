@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { and, asc, desc, eq, gt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
 import { decryptToken, encryptToken } from "~/lib/encrypt-decrypt-token";
 import { getRemoteLatestFeed } from "~/lib/get-remote-latest-feed";
@@ -14,7 +15,6 @@ import {
 import { feeds } from "~/server/db/schema";
 import { createCaller } from "../root";
 import { feedCreateSchema, feedUpdateSchema } from "../schema/feed";
-import { TRPCError } from "@trpc/server";
 
 export const feedRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -45,6 +45,22 @@ export const feedRouter = createTRPCRouter({
   create: protectedProcedure
     .input(feedCreateSchema)
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Check the number of existing feeds for the user
+      const userFeedsCount = await ctx.db
+        .select({ count: sql<number>`count(*)` })
+        .from(feeds)
+        .where(eq(feeds.createdById, userId))
+        .then((result) => result[0]?.count ?? 0);
+
+      if (userFeedsCount >= Number(env.FEED_LIMIT_PER_USER)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `You have reached the maximum limit of ${env.FEED_LIMIT_PER_USER} feeds.`,
+        });
+      }
+
       // get chat id
       const exampleResponse = {
         ok: true,
