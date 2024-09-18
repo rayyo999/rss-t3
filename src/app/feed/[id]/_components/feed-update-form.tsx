@@ -1,7 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -17,13 +29,14 @@ import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
 import { useToast } from "~/hooks/use-toast";
 import { feedUpdateSchema } from "~/server/api/schema/feed";
-import type { RouterOutputs } from "~/trpc/react";
-import { api } from "~/trpc/react";
+import { api, type RouterOutputs } from "~/trpc/react";
 
 type Feed = RouterOutputs["feed"]["getById"];
 
 export function FeedUpdateForm({ feed }: { feed: Feed }) {
   const { toast } = useToast();
+  const router = useRouter();
+  const utils = api.useUtils();
 
   const form = useForm({
     resolver: zodResolver(feedUpdateSchema),
@@ -51,6 +64,28 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
       });
     },
   });
+
+  const deleteFeed = api.feed.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Feed deleted successfully",
+        description: "Your feed has been deleted.",
+      });
+      void utils.feed.getAll.invalidate();
+      void router.push("/");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  function handleDelete() {
+    deleteFeed.mutate({ id: feed.id });
+  }
 
   return (
     <Form {...form}>
@@ -109,7 +144,7 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
           control={form.control}
           name="shouldNotify"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 gap-2">
+            <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Notifications</FormLabel>
                 <FormDescription>
@@ -126,7 +161,29 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
           )}
         />
 
-        <Button type="submit">Update Feed</Button>
+        <div className="flex justify-between">
+          <Button type="submit">Update feed</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Delete Feed</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  feed and remove it from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </form>
     </Form>
   );

@@ -181,6 +181,26 @@ export const feedRouter = createTRPCRouter({
         .where(eq(feeds.id, id));
     }),
 
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const feed = await ctx.db.query.feeds.findFirst({
+        where: and(eq(feeds.id, input.id), eq(feeds.createdById, userId)),
+      });
+
+      if (!feed) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Feed not found or you do not have permission to delete it",
+        });
+      }
+
+      await ctx.db.delete(feeds).where(eq(feeds.id, input.id));
+
+      return { success: true };
+    }),
+
   sendMessage: protectedProcedure
     .input(
       z.discriminatedUnion("type", [
