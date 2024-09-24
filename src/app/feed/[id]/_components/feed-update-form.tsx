@@ -102,7 +102,6 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
               <FormControl>
                 <Input {...field} />
               </FormControl>
-              <FormDescription>The title of your feed.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -117,7 +116,6 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
               <FormControl>
                 <Input {...field} />
               </FormControl>
-              <FormDescription>The URL of the RSS feed.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -132,9 +130,6 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
-              <FormDescription>
-                A brief description of the feed.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

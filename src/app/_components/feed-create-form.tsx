@@ -59,7 +59,6 @@ export function FeedCreateForm() {
               <FormControl>
                 <Input placeholder="Feed title" {...field} />
               </FormControl>
-              <FormDescription>The title of your feed.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -73,7 +72,6 @@ export function FeedCreateForm() {
               <FormControl>
                 <Input placeholder="https://example.com/feed.xml" {...field} />
               </FormControl>
-              <FormDescription>The URL of the RSS feed.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -87,9 +85,6 @@ export function FeedCreateForm() {
               <FormControl>
                 <Textarea placeholder="Feed description" {...field} />
               </FormControl>
-              <FormDescription>
-                A brief description of the feed.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -103,7 +98,6 @@ export function FeedCreateForm() {
               <FormControl>
                 <Input placeholder="Telegram Bot Token" {...field} />
               </FormControl>
-              <FormDescription>Your Telegram Bot Token.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -112,7 +106,7 @@ export function FeedCreateForm() {
           control={form.control}
           name="shouldNotify"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 gap-2">
+            <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Notifications</FormLabel>
                 <FormDescription>
