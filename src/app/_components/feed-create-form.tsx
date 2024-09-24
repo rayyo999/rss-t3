@@ -94,9 +94,12 @@ export function FeedCreateForm() {
           name="botToken"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bot Token</FormLabel>
+              <FormLabel>Telegram Bot Token</FormLabel>
               <FormControl>
-                <Input placeholder="Telegram Bot Token" {...field} />
+                <Input
+                  placeholder="1234567890:BBC5A-ty67opQw12ErTgHjKlMnBdFgHiJkL"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
