@@ -30,6 +30,8 @@ export const env = createEnv({
     ENCRYPTION_KEY: z.string(),
     CRON_TOKEN: z.string(),
     FEED_LIMIT_PER_USER: z.string(),
+    PLAYWRIGHT_TEST_BASE_URL: z.string().optional(),
+    TELEGRAM_TEST_BOT_TOKEN: z.string().optional(),
   },
 
   /**
@@ -58,6 +60,8 @@ export const env = createEnv({
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     CRON_TOKEN: process.env.CRON_TOKEN,
     FEED_LIMIT_PER_USER: process.env.FEED_LIMIT_PER_USER,
+    PLAYWRIGHT_TEST_BASE_URL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+    TELEGRAM_TEST_BOT_TOKEN: process.env.TELEGRAM_TEST_BOT_TOKEN,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

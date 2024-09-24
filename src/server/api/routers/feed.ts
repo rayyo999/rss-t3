@@ -1,8 +1,8 @@
+import { TRPCError } from "@trpc/server";
 import axios, { AxiosError } from "axios";
-import { and, asc, desc, eq, gt, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
 import { decryptToken, encryptToken } from "~/lib/encrypt-decrypt-token";
 import { getRemoteLatestFeed } from "~/lib/get-remote-latest-feed";
@@ -48,13 +48,15 @@ export const feedRouter = createTRPCRouter({
       const userId = ctx.session.user.id;
 
       // Check the number of existing feeds for the user
-      const userFeedsCount = await ctx.db
-        .select({ count: sql<number>`count(*)` })
+      const [userFeedsCount] = await ctx.db
+        .select({ count: count() })
         .from(feeds)
-        .where(eq(feeds.createdById, userId))
-        .then((result) => result[0]?.count ?? 0);
+        .where(eq(feeds.createdById, userId));
 
-      if (userFeedsCount >= Number(env.FEED_LIMIT_PER_USER)) {
+      if (
+        userFeedsCount?.count &&
+        userFeedsCount.count >= Number(env.FEED_LIMIT_PER_USER)
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: `You have reached the maximum limit of ${env.FEED_LIMIT_PER_USER} feeds.`,
