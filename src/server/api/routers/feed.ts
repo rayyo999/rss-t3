@@ -11,10 +11,11 @@ import {
   createTRPCRouter,
   protectedProcedure,
   protectedProcedureWithCronToken,
+  publicProcedure,
 } from "~/server/api/trpc";
 import { feeds } from "~/server/db/schema";
 import { createCaller } from "../root";
-import { feedCreateSchema, feedUpdateSchema } from "../schema/feed";
+import { feedCreateSchema, feedUpdateSchema, keySchema } from "../schema/feed";
 
 export const feedRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -39,7 +40,13 @@ export const feedRouter = createTRPCRouter({
         throw new Error("Feed not found or you do not have access to it");
       }
 
-      return feed;
+      // Validate the keys field for inferring type as jsonb
+      const validatedFeed = {
+        ...feed,
+        keys: z.array(keySchema).parse(feed.keys),
+      };
+
+      return validatedFeed;
     }),
 
   create: protectedProcedure
@@ -144,17 +151,24 @@ export const feedRouter = createTRPCRouter({
           "Failed to get chat id, make sure you have send random message to the chat first!",
         );
       }
+
       // check db success
+      // const result = await ctx.db.insert(feeds).values({
+      //   title: input.title,
+      //   description: input.description,
+      //   url: input.url,
+      //   createdById: ctx.session.user.id,
+      //   shouldNotify: input.shouldNotify,
+      //   botToken: encryptToken(input.botToken), // Store the encrypted token
+      //   chatId: encryptToken(chatId), // Store the encrypted chat id
+      //   selectedKeys: input.keys,
+      // });
       const result = await ctx.db.insert(feeds).values({
-        title: input.title,
-        description: input.description,
-        url: input.url,
+        ...input,
         createdById: ctx.session.user.id,
-        shouldNotify: input.shouldNotify,
         botToken: encryptToken(input.botToken), // Store the encrypted token
         chatId: encryptToken(chatId), // Store the encrypted chat id
       });
-      //how to get the id of the feed
 
       //if success, send message to telegram
       if (result) {
@@ -252,6 +266,13 @@ export const feedRouter = createTRPCRouter({
           })
           .where(eq(feeds.id, input.id));
       }
+    }),
+
+  //TODO: change to protectedProcedure
+  getRemoteLatest: publicProcedure
+    .input(z.object({ url: z.string() }))
+    .query(async ({ input }) => {
+      return await getRemoteLatestFeed(input.url);
     }),
 
   compareAndNotify: protectedProcedureWithCronToken.mutation(

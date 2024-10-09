@@ -17,6 +17,10 @@ import { useToast } from "~/hooks/use-toast";
 import { useZodForm } from "~/hooks/use-zod-form";
 import { feedCreateSchema } from "~/server/api/schema/feed";
 import { api } from "~/trpc/react";
+import { FeedPreview } from "./feed-preview";
+import { FeedUrl } from "./feed-url";
+import { SelectedKeysField } from "./selected-keys-field";
+import { useFeedKeys } from "~/hooks/use-feed-keys";
 
 export function FeedCreateForm() {
   const { toast } = useToast();
@@ -24,6 +28,38 @@ export function FeedCreateForm() {
     schema: feedCreateSchema,
     defaultValues: {
       shouldNotify: true,
+      // keys: [
+      //   {
+      //     id: crypto.randomUUID(),
+      //     key: "title",
+      //     customKey: undefined,
+      //     type: "string",
+      //     isSelected: true,
+      //   },
+      //   {
+      //     id: crypto.randomUUID(),
+      //     key: "link",
+      //     customKey: undefined,
+      //     type: "string",
+      //     isSelected: true,
+      //   },
+      //   {
+      //     id: crypto.randomUUID(),
+      //     key: "pubDate",
+      //     customKey: undefined,
+      //     type: "date",
+      //     isSelected: true,
+      //   },
+      // ],
+      keys: [],
+      botToken: "",
+      title: "",
+      description: "",
+      url: "",
+      // url: "https://www.freecodecamp.org/news/rss",
+      // url: "https://seeder.mutant.garden/feed/12884088",
+      // url: "https://techcrunch.com/feed/",
+      // url: "https://sabe.io/rss.xml",
     },
   });
   const utils = api.useUtils();
@@ -48,85 +84,91 @@ export function FeedCreateForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((data) => createFeed.mutate(data))}
-        className="space-y-8"
+        className="w-full md:w-[450px]"
       >
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Feed title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/feed.xml" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Feed description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="botToken"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Telegram Bot Token</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="1234567890:BBC5A-ty67opQw12ErTgHjKlMnBdFgHiJkL"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="shouldNotify"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Notifications</FormLabel>
-                <FormDescription>
-                  Receive notifications for new feed items.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Create Feed</Button>
+        <div className="space-y-6">
+          <FormField
+            control={form.control}
+            name="botToken"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Telegram Bot Token</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="1234567890:BBC5A-ty67opQw12ErTgHjKlMnBdFgHiJkL"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Feed title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Feed description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="shouldNotify"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Notifications</FormLabel>
+                  <FormDescription>
+                    Receive notifications for new feed items.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FeedUrl />
+          <FeedPreview />
+          <SelectedKeysField />
+        </div>
+
+        <CreateFeedButton />
       </form>
     </Form>
+  );
+}
+
+function CreateFeedButton() {
+  const { keys } = useFeedKeys();
+  const isKeysEmpty = keys.length === 0;
+
+  return (
+    <div className="mt-8 flex justify-center">
+      <Button type="submit" disabled={isKeysEmpty}>
+        Create Feed
+      </Button>
+    </div>
   );
 }

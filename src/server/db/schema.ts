@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgTableCreator,
   primaryKey,
   text,
@@ -53,6 +54,9 @@ export const feeds = createTable(
     // telegram bot
     botToken: varchar("bot_token", { length: 255 }).notNull(),
     chatId: varchar("chat_id", { length: 255 }).notNull(),
+
+    // selected keys
+    keys: jsonb("keys").default("[]"),
   },
   (example) => ({
     createdByIdIdx: index("created_by_idx").on(example.createdById),

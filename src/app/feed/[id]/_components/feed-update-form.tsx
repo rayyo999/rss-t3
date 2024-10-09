@@ -3,6 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+
+import { FeedPreview } from "~/app/_components/feed-preview";
+import { FeedUrl } from "~/app/_components/feed-url";
+import { SelectedKeysField } from "~/app/_components/selected-keys-field";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +50,7 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
       url: feed.url,
       description: feed.description ?? "",
       shouldNotify: feed.shouldNotify,
+      keys: feed.keys,
     },
   });
 
@@ -91,72 +96,61 @@ export function FeedUpdateForm({ feed }: { feed: Feed }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((data) => updateFeed.mutate(data))}
-        className="space-y-8"
+        className="w-full md:w-[450px]"
       >
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-6">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Feed title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Feed description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="shouldNotify"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Notifications</FormLabel>
+                  <FormDescription>
+                    Receive notifications for new feed items.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FeedUrl />
+          <FeedPreview />
+          <SelectedKeysField />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="shouldNotify"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Notifications</FormLabel>
-                <FormDescription>
-                  Receive notifications for new feed items.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-between">
+        <div className="mt-8 flex justify-between">
           <Button type="submit">Update feed</Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
