@@ -21,7 +21,7 @@ test.describe("Feed", () => {
     test("should not get preview content and should display error text when url is not valid", async ({
       page,
     }) => {
-      await page.goto("/");
+      await page.goto("/feed/create");
 
       await page
         .getByRole("textbox", { name: "URL", exact: true })
@@ -38,7 +38,7 @@ test.describe("Feed", () => {
     test("should display error text and error toast when get preview failed", async ({
       page,
     }) => {
-      await page.goto("/");
+      await page.goto("/feed/create");
       await getPreview({ url: "https://example.com/rss" }, page);
 
       //error text
@@ -67,7 +67,7 @@ test.describe("Feed", () => {
     test("should get preview content and keys with a valid feed url", async ({
       page,
     }) => {
-      await page.goto("/");
+      await page.goto("/feed/create");
       await getPreview({ url: validFeedURL }, page);
 
       const previewSection = page
@@ -90,7 +90,7 @@ test.describe("Feed", () => {
     test("should display custom key in preview section after user input valid feed url and customize keys", async ({
       page,
     }) => {
-      await page.goto("/");
+      await page.goto("/feed/create");
       await getPreview({ url: validFeedURL }, page);
       await customizeKeys(
         [
@@ -143,10 +143,18 @@ test.describe("Feed", () => {
   });
 
   test.describe("Get, Create, Update, Delete Feed", () => {
+    test("should navigate to /feed/create when click 'Add Feed' button in the home page", async ({
+      page,
+    }) => {
+      await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
+      await expect(page).toHaveURL("/feed/create");
+    });
     test("should not click create button before getting preview", async ({
       page,
     }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
 
       await expect(
         page.getByRole("button", { name: "Create Feed", exact: true }),
@@ -163,6 +171,7 @@ test.describe("Feed", () => {
       page,
     }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: "",
@@ -184,6 +193,7 @@ test.describe("Feed", () => {
       page,
     }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: "1234567890",
@@ -199,11 +209,14 @@ test.describe("Feed", () => {
           { exact: true },
         ),
       ).toBeVisible();
+
+      await page.goto("/");
       await expect(page.getByText("Test Feed")).not.toBeVisible();
     });
 
     test("should create a new feed", async ({ page }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -216,11 +229,14 @@ test.describe("Feed", () => {
       await expect(
         page.getByText("Feed created successfully", { exact: true }),
       ).toBeVisible();
+
+      await page.goto("/");
       await expect(page.getByText("Test Feed")).toBeVisible();
     });
 
     test("should create a new feed with custom keys", async ({ page }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -260,11 +276,14 @@ test.describe("Feed", () => {
       await expect(
         page.getByText("Feed created successfully", { exact: true }),
       ).toBeVisible();
+
+      await page.goto("/");
       await expect(page.getByText("Test Feed")).toBeVisible();
     });
 
     test("should update feed", async ({ page }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -275,6 +294,11 @@ test.describe("Feed", () => {
         page,
       );
 
+      // navigate back to / after feed created successfully, if not, newly created feed will not display
+      await expect(
+        page.getByText("Feed created successfully", { exact: true }),
+      ).toBeVisible();
+      await page.goto("/");
       await page.getByText("Test Feed 2").click();
       // wait for page to change /feed/random+id
       await page.waitForURL(/\/feed\/.+/);
@@ -293,6 +317,7 @@ test.describe("Feed", () => {
 
     test("should delete a feed and be redirected to /", async ({ page }) => {
       await page.goto("/");
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -303,6 +328,11 @@ test.describe("Feed", () => {
         page,
       );
 
+      // navigate back to / after feed created successfully, if not, newly created feed will not display
+      await expect(
+        page.getByText("Feed created successfully", { exact: true }),
+      ).toBeVisible();
+      await page.goto("/");
       await page.getByText("Test Feed To be Deleted").click();
       // wait for page to change /feed/random+id
       await page.waitForURL(/\/feed\/.+/);
@@ -328,6 +358,7 @@ test.describe("Feed", () => {
 
       // Assuming 3 feeds have already been created
       for (let i = 0; i < feedLimit; i++) {
+        await clickAddFeedButtonAndNavigate(page);
         await createFeed(
           {
             botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -337,10 +368,17 @@ test.describe("Feed", () => {
           },
           page,
         );
+
+        // navigate back to / after feed created successfully, if not, newly created feed will not display
+        await expect(
+          page.getByText("Feed created successfully", { exact: true }),
+        ).toBeVisible();
+        await page.goto("/");
         await expect(page.getByText(`Test Feed ${i + 1}`)).toBeVisible();
       }
 
       // Attempt to create a feed beyond the limit
+      await clickAddFeedButtonAndNavigate(page);
       await createFeed(
         {
           botToken: TELEGRAM_TEST_BOT_TOKEN,
@@ -358,10 +396,17 @@ test.describe("Feed", () => {
           { exact: true },
         ),
       ).toBeVisible();
+
+      await page.goto("/");
       await expect(page.getByText("Test Feed Beyond Limit")).not.toBeVisible();
     });
   });
 });
+
+async function clickAddFeedButtonAndNavigate(page: Page) {
+  await page.getByRole("button", { name: "Add Feed", exact: true }).click();
+  await page.waitForURL("/feed/create");
+}
 
 async function getPreview(
   { url }: { url: RouterInputs["feed"]["create"]["url"] },

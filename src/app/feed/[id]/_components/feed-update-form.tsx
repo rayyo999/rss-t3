@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
-import { FeedPreview } from "~/app/_components/feed-preview";
-import { FeedUrl } from "~/app/_components/feed-url";
-import { SelectedKeysField } from "~/app/_components/selected-keys-field";
+import { FeedPreview } from "~/app/feed/_components/feed-preview";
+import { FeedUrl } from "~/app/feed/_components/feed-url";
+import { SelectedKeysField } from "~/app/feed/_components/selected-keys-field";
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,5 +1,8 @@
 "use client";
 
+import { FeedPreview } from "~/app/feed/_components/feed-preview";
+import { FeedUrl } from "~/app/feed/_components/feed-url";
+import { SelectedKeysField } from "~/app/feed/_components/selected-keys-field";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -13,14 +16,11 @@ import {
 import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
+import { useFeedKeys } from "~/hooks/use-feed-keys";
 import { useToast } from "~/hooks/use-toast";
 import { useZodForm } from "~/hooks/use-zod-form";
 import { feedCreateSchema } from "~/server/api/schema/feed";
 import { api } from "~/trpc/react";
-import { FeedPreview } from "./feed-preview";
-import { FeedUrl } from "./feed-url";
-import { SelectedKeysField } from "./selected-keys-field";
-import { useFeedKeys } from "~/hooks/use-feed-keys";
 
 export function FeedCreateForm() {
   const { toast } = useToast();
