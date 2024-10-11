@@ -5,6 +5,8 @@ import { z } from "zod";
 
 import { env } from "~/env";
 import { decryptToken, encryptToken } from "~/lib/encrypt-decrypt-token";
+import { formatFeedNestedValue } from "~/lib/format-feed-nested-value";
+import { getFeedNestedValue } from "~/lib/get-feed-nested-value";
 import { getRemoteLatestFeed } from "~/lib/get-remote-latest-feed";
 import { telegramBotSendMessage } from "~/lib/telegram-bot-send-message";
 import {
@@ -327,16 +329,33 @@ export const feedRouter = createTRPCRouter({
 
               if (!isNewContent) {
                 console.log(
-                  `No new content for ${feed.title}, skip sending notification`,
+                  `No new content for ${feed.id}(title:${feed.title}), skip sending notification`,
                 );
                 continue;
               }
+
+              // Construct the message based on selected keys
+              const parsedKeys = z.array(keySchema).parse(feed.keys);
+              const selectedKeys = parsedKeys.filter((key) => key.isSelected);
+              const messageContent = selectedKeys
+                .map(({ key, customKey, replacements }) => {
+                  const value = getFeedNestedValue(remoteLatestFeed, key);
+                  const formattedValue = formatFeedNestedValue(
+                    value,
+                    replacements,
+                  );
+
+                  return `${customKey ?? key} : ${formattedValue}`;
+                })
+                .join("\n\n");
+
+              const message = `New content for ${feed.title}:\n\n${messageContent}`;
 
               // Send notification
               const result = await telegramBotSendMessage({
                 botToken: decryptToken(feed.botToken),
                 chatId: decryptToken(feed.chatId),
-                message: `New content for ${feed.title}:\nTitle: ${remoteLatestFeed.title?.trim()}\nLink: ${remoteLatestFeed.link}`,
+                message,
               });
 
               if (!result) {
