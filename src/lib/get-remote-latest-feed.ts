@@ -1,8 +1,19 @@
 import type { ISODateString } from "next-auth";
 import RSSParser from "rss-parser";
 
+import { feedCreateSchema } from "~/server/api/schema/feed";
+
 export async function getRemoteLatestFeed(url: string) {
   try {
+    const urlSchema = feedCreateSchema.shape.url;
+    const parsedUrl = urlSchema.safeParse(url);
+
+    if (!parsedUrl.success) {
+      throw new Error("Invalid URL provided", {
+        cause: parsedUrl.error,
+      });
+    }
+
     const feed = await new RSSParser().parseURL(url);
 
     if (!feed) {
@@ -39,6 +50,9 @@ export async function getRemoteLatestFeed(url: string) {
     }
     return feed.items[0];
   } catch (error) {
+    if (error instanceof Error && error.message === "Invalid URL provided") {
+      throw error; // Re-throw specific error
+    }
     console.error(error);
     throw new Error("Failed to get remote latest feed", { cause: error });
   }
