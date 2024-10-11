@@ -14,7 +14,7 @@ export async function getRemoteLatestFeed(url: string) {
       });
     }
 
-    const feed = await new RSSParser().parseURL(url);
+    const feed = await new RSSParser({ timeout: 15000 }).parseURL(url);
 
     if (!feed) {
       throw new Error("Failed to get remote latest feed", {
