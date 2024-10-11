@@ -11,7 +11,6 @@ import {
   createTRPCRouter,
   protectedProcedure,
   protectedProcedureWithCronToken,
-  publicProcedure,
 } from "~/server/api/trpc";
 import { feeds } from "~/server/db/schema";
 import { createCaller } from "../root";
@@ -268,8 +267,7 @@ export const feedRouter = createTRPCRouter({
       }
     }),
 
-  //TODO: change to protectedProcedure
-  getRemoteLatest: publicProcedure
+  getRemoteLatest: protectedProcedure
     .input(z.object({ url: z.string() }))
     .query(async ({ input }) => {
       return await getRemoteLatestFeed(input.url);
