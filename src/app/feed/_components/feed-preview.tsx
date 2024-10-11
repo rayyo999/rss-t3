@@ -6,11 +6,9 @@ import type { z } from "zod";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useFeedKeys } from "~/hooks/use-feed-keys";
 import { useRemoteLatestFeed } from "~/hooks/use-remote-latest-feed";
-import type {
-  feedCreateSchema,
-  replacementSchema,
-} from "~/server/api/schema/feed";
-import type { RemoteFeed } from "~/types";
+import { formatFeedNestedValue } from "~/lib/format-feed-nested-value";
+import { getFeedNestedValue } from "~/lib/get-feed-nested-value";
+import type { feedCreateSchema } from "~/server/api/schema/feed";
 
 export function FeedPreview() {
   const { watch } = useFormContext<z.infer<typeof feedCreateSchema>>();
@@ -81,51 +79,14 @@ export function FeedPreview() {
                 ? customKey
                 : key.charAt(0).toUpperCase() + key.slice(1)}
               <span> : </span>
-              {formatValue(getNestedValue(feed, key), replacements)}
+              {formatFeedNestedValue(
+                getFeedNestedValue(feed, key),
+                replacements,
+              )}
             </p>
           </li>
         ))}
       </ul>
     </div>
   );
-}
-
-function getNestedValue<T>(obj: T, path: string): unknown {
-  return path.split(".").reduce<unknown>((acc, part) => {
-    if (acc && typeof acc === "object" && part in acc) {
-      return (acc as RemoteFeed)[part];
-    }
-    return undefined;
-  }, obj);
-}
-
-function formatValue(
-  value: unknown,
-  replacements?: z.infer<typeof replacementSchema>[],
-): string {
-  if (value === null || value === undefined) {
-    return "...";
-  }
-
-  let formattedValue: string;
-
-  if (typeof value === "object" && value !== null) {
-    if (Array.isArray(value)) {
-      formattedValue = value.join(", ");
-    } else {
-      formattedValue = JSON.stringify(value);
-    }
-  } else {
-    formattedValue = String(value);
-  }
-
-  if (replacements && replacements.length > 0) {
-    replacements.forEach(({ target, value }) => {
-      if (!target || !value) return;
-      const regex = new RegExp(target, "g");
-      formattedValue = formattedValue.replace(regex, value);
-    });
-  }
-
-  return formattedValue;
 }
