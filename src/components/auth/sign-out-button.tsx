@@ -31,14 +31,14 @@ export default async function SignOutButton() {
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuLabel>{session?.user?.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Link href="/api/auth/signout">
+        <Link href="/api/auth/signout">
+          <DropdownMenuItem className="hover:cursor-pointer">
             <div className="flex items-center gap-2">
               <ExitIcon className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </div>
-          </Link>
-        </DropdownMenuItem>
+          </DropdownMenuItem>
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   );
