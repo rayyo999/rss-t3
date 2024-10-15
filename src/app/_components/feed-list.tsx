@@ -17,14 +17,8 @@ export function FeedList() {
 
   if (feeds.length === 0) {
     return (
-      <div className="relative flex w-full flex-col gap-4">
-        <FeedCardSkeleton pulse={false} />
-        <FeedCardSkeleton pulse={false} />
-        <FeedCardSkeleton pulse={false} />
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10">
-          <p className="text-2xl font-bold text-white">No feeds yet</p>
-        </div>
+      <div className="relative flex w-full flex-col items-center gap-4">
+        <p className="text-2xl font-bold text-white">No feeds yet</p>
       </div>
     );
   }
