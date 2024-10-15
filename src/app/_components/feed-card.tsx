@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   Card,
   CardContent,
@@ -9,30 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { cn } from "~/lib/utils";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { type RouterOutputs } from "~/trpc/react";
 
-export function FeedList() {
-  const [feeds] = api.feed.getAll.useSuspenseQuery();
-
-  if (feeds.length === 0) {
-    return (
-      <div className="relative flex w-full flex-col items-center gap-4">
-        <p className="text-2xl font-bold text-white">No feeds yet</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4 md:px-20 md:py-8">
-      {feeds.map((p) => {
-        return <FeedCard key={p.id} feed={p} />;
-      })}
-    </div>
-  );
-}
-
-export function FeedCard(props: {
+export default function FeedCard(props: {
   feed: RouterOutputs["feed"]["getAll"][number];
 }) {
   return (
@@ -71,31 +51,5 @@ export function FeedCard(props: {
         </CardFooter>
       </Card>
     </Link>
-  );
-}
-
-export function FeedCardSkeleton(props: { pulse?: boolean }) {
-  const { pulse = true } = props;
-  return (
-    <div className="flex flex-row rounded-lg bg-muted p-4">
-      <div className="flex-grow">
-        <h2
-          className={cn(
-            "w-1/4 rounded bg-primary text-2xl font-bold",
-            pulse && "animate-pulse",
-          )}
-        >
-          &nbsp;
-        </h2>
-        <p
-          className={cn(
-            "mt-2 w-1/3 rounded bg-current text-sm",
-            pulse && "animate-pulse",
-          )}
-        >
-          &nbsp;
-        </p>
-      </div>
-    </div>
   );
 }

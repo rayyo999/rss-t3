@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import { Button } from "~/components/ui/button";
 import { getServerAuthSession } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
-import { FeedCardSkeleton, FeedList } from "./_components/feed-list";
+import { FeedCardList } from "./_components/feed-card-list";
+import { FeedCardSkeleton } from "./_components/feed-card-skeleton";
 
 export default async function Home() {
   const session = await getServerAuthSession();
@@ -35,7 +36,7 @@ export default async function Home() {
                 </div>
               }
             >
-              <FeedList />
+              <FeedCardList />
             </Suspense>
           </div>
         </div>
