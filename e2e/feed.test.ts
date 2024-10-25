@@ -354,7 +354,7 @@ test.describe("Feed", () => {
       page,
     }) => {
       await page.goto("/");
-      const feedLimit = Number(env.FEED_LIMIT_PER_USER);
+      const feedLimit = Number(env.DEFAULT_FEED_LIMIT_PER_USER);
 
       // Assuming 3 feeds have already been created
       for (let i = 0; i < feedLimit; i++) {

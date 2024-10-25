@@ -1,0 +1,1 @@
+ALTER TABLE "rss-t3_user" ADD COLUMN "feed_limit" integer DEFAULT 1;

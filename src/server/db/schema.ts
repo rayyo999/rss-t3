@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
+import { env } from "~/env";
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -76,6 +77,9 @@ export const users = createTable("user", {
     withTimezone: true,
   }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar("image", { length: 255 }),
+  feedLimit: integer("feed_limit").default(
+    Number(env.DEFAULT_FEED_LIMIT_PER_USER) ?? 1,
+  ),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

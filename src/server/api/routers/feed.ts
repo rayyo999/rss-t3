@@ -14,7 +14,7 @@ import {
   protectedProcedure,
   protectedProcedureWithCronToken,
 } from "~/server/api/trpc";
-import { feeds } from "~/server/db/schema";
+import { feeds, users } from "~/server/db/schema";
 import { createCaller } from "../root";
 import { feedCreateSchema, feedUpdateSchema, keySchema } from "../schema/feed";
 
@@ -55,19 +55,26 @@ export const feedRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          feedLimit: true,
+        },
+      });
+
+      const feedLimit =
+        user?.feedLimit ?? Number(env.DEFAULT_FEED_LIMIT_PER_USER);
+
       // Check the number of existing feeds for the user
       const [userFeedsCount] = await ctx.db
         .select({ count: count() })
         .from(feeds)
         .where(eq(feeds.createdById, userId));
 
-      if (
-        userFeedsCount?.count &&
-        userFeedsCount.count >= Number(env.FEED_LIMIT_PER_USER)
-      ) {
+      if (userFeedsCount?.count && userFeedsCount.count >= feedLimit) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: `You have reached the maximum limit of ${env.FEED_LIMIT_PER_USER} feeds.`,
+          message: `You have reached the maximum limit of ${feedLimit} feeds.`,
         });
       }
 
