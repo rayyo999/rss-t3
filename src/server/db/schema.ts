@@ -13,6 +13,8 @@ import {
 import { type AdapterAccount } from "next-auth/adapters";
 
 import { env } from "~/env";
+import type { UserRole } from "~/types";
+
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -65,22 +67,32 @@ export const feeds = createTable(
   }),
 );
 
-export const users = createTable("user", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerified: timestamp("email_verified", {
-    mode: "date",
-    withTimezone: true,
-  }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar("image", { length: 255 }),
-  feedLimit: integer("feed_limit").default(
-    Number(env.DEFAULT_FEED_LIMIT_PER_USER) ?? 1,
-  ),
-});
+export const users = createTable(
+  "user",
+  {
+    id: varchar("id", { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: varchar("name", { length: 255 }),
+    email: varchar("email", { length: 255 }).notNull(),
+    emailVerified: timestamp("email_verified", {
+      mode: "date",
+      withTimezone: true,
+    }).default(sql`CURRENT_TIMESTAMP`),
+    image: varchar("image", { length: 255 }),
+    feedLimit: integer("feed_limit").default(
+      Number(env.DEFAULT_FEED_LIMIT_PER_USER) ?? 1,
+    ),
+    role: varchar("role", { length: 255 })
+      .$type<UserRole>()
+      .default("user")
+      .notNull(),
+  },
+  (user) => ({
+    nameIndex: index("name_idx").on(user.name),
+  }),
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),

@@ -1,0 +1,1 @@
+ALTER TABLE "rss-t3_user" ADD COLUMN "role" varchar(255) DEFAULT 'user' NOT NULL;

@@ -10,6 +10,8 @@ import DiscordProvider from "next-auth/providers/discord";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts, sessions, users } from "~/server/db/schema";
+import type { UserRole } from "~/types";
+import { USER_ROLE } from "~/types/user-role";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -21,15 +23,15 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      role: UserRole;
       // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role: UserRole;
+    // ...other properties
+  }
 }
 
 /**
@@ -52,11 +54,13 @@ export const authOptions: NextAuthOptions = {
       //   session.user.id = user.id;
       // }
       session.user.id = token.id as string;
+      session.user.role = token.role as UserRole;
       return session;
     },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
@@ -110,6 +114,7 @@ export const authOptions: NextAuthOptions = {
                 name: telegramUser.name,
                 email: telegramUser.email,
                 image: telegramUser.image,
+                role: USER_ROLE.Values.user,
               })
               .returning();
             dbUser = newUser;

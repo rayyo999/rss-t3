@@ -10,10 +10,11 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { env } from "~/env";
 
+import { env } from "~/env";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { USER_ROLE } from "~/types/user-role";
 
 /**
  * 1. CONTEXT
@@ -142,4 +143,27 @@ export const protectedProcedureWithCronToken = t.procedure
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({ ctx });
+  });
+
+/**
+ * Admin (authenticated and authorized) procedure
+ *
+ * This procedure is only accessible to users with the role "admin". It verifies the session is valid,
+ * guarantees `ctx.session.user` is not null, and checks if the user role is "admin".
+ */
+export const adminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    if (ctx.session.user.role !== USER_ROLE.Values.admin) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+    }
+    return next({
+      ctx: {
+        // infers the `session` as non-nullable and user role as "admin"
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
   });

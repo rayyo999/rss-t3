@@ -9,12 +9,15 @@ import { fileURLToPath } from "url";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts, sessions, users } from "~/server/db/schema";
+import { USER_ROLE } from "~/types/user-role";
 
 export const TEST_USER = {
   id: "99b76d25-1cbc-4f79-83a3-4cb9a678de0d",
   name: "Test User",
   email: "test.user@example.com",
   image: null,
+  role: USER_ROLE.Values.user,
+  feedLimit: 1,
 };
 
 //infer type user from db excluding emailVerified
