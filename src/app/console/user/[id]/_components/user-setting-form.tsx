@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { TRPCClientError } from "@trpc/client";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
@@ -23,11 +24,22 @@ import {
 } from "~/components/ui/select";
 import { useToast } from "~/hooks/use-toast";
 import { userUpdateSchema } from "~/server/api/schema/user";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { useRoleStore } from "~/stores";
+import { api, RouterOutputs } from "~/trpc/react";
 
-type User = RouterOutputs["user"]["getById"];
+export function UserSettingForm({ id }: { id: string }) {
+  const { data: user } = api.user.getById.useQuery({ id });
 
-export function UserSettingForm({ user }: { user: User }) {
+  if (!user) return null;
+
+  return <FormContent user={user} />;
+}
+
+export function FormContent({
+  user,
+}: {
+  user: RouterOutputs["user"]["getById"];
+}) {
   const { toast } = useToast();
   const utils = api.useUtils();
   const updateUser = api.user.update.useMutation({
@@ -44,16 +56,23 @@ export function UserSettingForm({ user }: { user: User }) {
         description: error.message,
         variant: "destructive",
       });
+      if (
+        error instanceof TRPCClientError &&
+        error.message?.includes("Role mismatch")
+      ) {
+        console.error("Role mismatch mutation error");
+        useRoleStore.getState().setRoleMismatch(true);
+      }
     },
   });
   const form = useForm({
     resolver: zodResolver(userUpdateSchema),
     defaultValues: {
-      id: user.id,
-      feedLimit: user.feedLimit ?? 0,
-      role: user.role,
-      name: user.name,
-      email: user.email,
+      id: user?.id ?? "",
+      feedLimit: user?.feedLimit ?? 0,
+      role: user?.role ?? "user",
+      name: user?.name,
+      email: user?.email,
     },
   });
 

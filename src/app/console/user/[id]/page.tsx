@@ -22,24 +22,16 @@ export default async function UserPage({ params }: { params: { id: string } }) {
     );
   }
 
+  void api.user.getById.prefetch({ id: params.id });
+
   return (
     <main className="drak:from-[#2e026d] drak:to-[#15162c] drak:text-white flex min-h-screen flex-col items-center justify-center bg-gradient-to-b">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <div className="container mx-auto py-10">
           <h1 className="mb-4 text-xl font-bold">Update User Settings</h1>
-          <UserSettingFormContent id={params.id} />
+          <UserSettingForm id={params.id} />
         </div>
       </div>
     </main>
   );
-}
-
-async function UserSettingFormContent({ id }: { id: string }) {
-  const user = await api.user.getById({ id });
-
-  if (!user) {
-    return <div>User not found</div>;
-  }
-
-  return <UserSettingForm user={user} />;
 }

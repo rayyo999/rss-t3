@@ -6,8 +6,8 @@ import {
 import Link from "next/link";
 
 import ThemeToggle from "~/components/theme/theme-select";
-import { Separator } from "~/components/ui/separator";
 import AuthButtonContainer from "../auth/auth-button-container";
+import CheckRoleMatch from "./check-role-match";
 import MobileHomeIcon from "./mobile-home-icon";
 
 export default function Nav() {
@@ -43,8 +43,9 @@ export default function Nav() {
           <AuthButtonContainer />
           <ThemeToggle />
         </div>
+
+        <CheckRoleMatch />
       </div>
-      <Separator />
     </nav>
   );
 }

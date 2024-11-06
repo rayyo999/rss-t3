@@ -8,6 +8,7 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -15,6 +16,7 @@ import { env } from "~/env";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import { USER_ROLE } from "~/types/user-role";
+import { users } from "../db/schema";
 
 /**
  * 1. CONTEXT
@@ -113,6 +115,39 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
 /**
+ * Middleware for checking user role and procedure execution and adding an artificial delay in development.
+ *
+ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
+ * network latency that would occur in production but not in local development.
+ */
+const matchUserRoleMiddleware = t.middleware(async ({ next, ctx }) => {
+  if (!ctx.session) {
+    return await next();
+  }
+
+  //get role in db
+  const data = await ctx.db.query.users.findFirst({
+    where: eq(users.id, ctx.session?.user.id),
+    columns: {
+      role: true,
+    },
+  });
+
+  if (data?.role !== ctx.session?.user.role) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message:
+        "Role mismatch, old Role: " +
+        ctx.session.user.role +
+        " , new Role: " +
+        data?.role,
+    });
+  }
+
+  return await next();
+});
+
+/**
  * Protected (authenticated) procedure
  *
  * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
@@ -122,10 +157,12 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
+  .use(matchUserRoleMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
     return next({
       ctx: {
         // infers the `session` as non-nullable
@@ -153,6 +190,7 @@ export const protectedProcedureWithCronToken = t.procedure
  */
 export const adminProcedure = t.procedure
   .use(timingMiddleware)
+  .use(matchUserRoleMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -160,6 +198,7 @@ export const adminProcedure = t.procedure
     if (ctx.session.user.role !== USER_ROLE.Values.admin) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
     }
+
     return next({
       ctx: {
         // infers the `session` as non-nullable and user role as "admin"
