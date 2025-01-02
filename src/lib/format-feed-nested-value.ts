@@ -18,8 +18,12 @@ export function formatFeedNestedValue(
       formattedValue = JSON.stringify(value);
     }
   } else {
-    formattedValue = String(value);
+    // eslint error: Error: 'value' will use Object's default stringification format ('[object Object]') when stringified.  @typescript-eslint/no-base-to-string
+    // formattedValue = String(value);
+  
+    formattedValue = JSON.stringify(value);
   }
+
 
   if (replacements && replacements.length > 0) {
     replacements.forEach(({ target, value }) => {
